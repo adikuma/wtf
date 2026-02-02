@@ -2,9 +2,28 @@ import json
 
 import requests
 
-from config import settings
-
+from . import storage
 from .models import LLMResponse
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+DEFAULT_MODEL = "anthropic/claude-3.5-sonnet"
+
+
+def get_api_key() -> str:
+    # get api key from config
+    config = storage.load_config()
+    if config and config.get("api_key"):
+        return config["api_key"]
+    return ""
+
+
+def get_model() -> str:
+    # get model from config
+    config = storage.load_config()
+    if config and config.get("model"):
+        return config["model"]
+    return DEFAULT_MODEL
+
 
 SCHEMA = {
     "name": "standup",
@@ -20,8 +39,12 @@ SCHEMA = {
                 "type": "string",
                 "description": "One snarky but friendly observation",
             },
+            "wip_summary": {
+                "type": "string",
+                "description": "1 sentence about what uncommitted changes suggest you're working on. Empty string if no diff provided.",
+            },
         },
-        "required": ["summary", "roast"],
+        "required": ["summary", "roast", "wip_summary"],
         "additionalProperties": False,
     },
 }
@@ -29,30 +52,46 @@ SCHEMA = {
 SYSTEM_PROMPT = """You generate standup summaries from git commits.
 
 Rules:
-- Summary: 2-3 sentences, professional but casual
+- Summary: 2-3 sentences about committed work, professional but casual
 - Roast: One witty observation about patterns you notice
+- WIP Summary: If diff/uncommitted changes provided, 1 sentence about what's being worked on. Empty if no diff.
 - Be brief. No fluff.
 - Notice: repeated fixes, vague commits, late night work, scattered focus
 """
 
 
-def analyze_commits(commits_text: str) -> tuple[LLMResponse, float]:
-    # call openrouter with provider routing
+def analyze_commits(
+    commits_text: str, diff_text: str | None = None
+) -> tuple[LLMResponse, float]:
+    # call openrouter
+    api_key = get_api_key()
+    model = get_model()
+
+    # build user message with commits and optional diff
+    user_content = f"COMMITS:\n{commits_text}"
+    if diff_text:
+        user_content += f"\n\nUNCOMMITTED CHANGES (diff):\n{diff_text}"
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_content},
+        ],
+        "response_format": {"type": "json_schema", "json_schema": SCHEMA},
+    }
+
+    # use deepinfra provider for gpt-oss model (cheap + fast)
+    if model == "openai/gpt-oss-120b":
+        payload["provider"] = {"order": ["DeepInfra"]}
+
     response = requests.post(
-        settings.openrouter_url,
+        OPENROUTER_URL,
         headers={
-            "Authorization": f"Bearer {settings.openrouter_api_key}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         },
-        json={
-            "model": settings.wtf_model,
-            "provider": {"order": [settings.wtf_provider]},
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": commits_text},
-            ],
-            "response_format": {"type": "json_schema", "json_schema": SCHEMA},
-        },
+        json=payload,
     )
     response.raise_for_status()
     data = response.json()

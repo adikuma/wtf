@@ -1,68 +1,71 @@
-# WTF - What The (F)iles Did I Work On?
+# wtf-dev
 
-A CLI tool that tells you what you worked on yesterday - with personality.
+A CLI tool that tells you what you worked on - with personality.
 
-## What It Does
-
-`wtf` scans your git repositories, finds your recent commits, and generates a standup-ready summary with snarky commentary. No more staring at `git log` trying to remember what you did.
-
-## Installation
+## Install
 
 ```bash
-# local development
-uv sync
-uv run wtf
-
-# or install globally
-uv pip install -e .
-wtf
+pip install wtf-dev
 ```
+
+## Setup
+
+```bash
+wtf setup
+```
+
+This will prompt for your OpenRouter API key and let you pick a model.
 
 ## Usage
 
 ```bash
-# basic - scan current directory for all repos
+# what did I do today?
 wtf
-
-# only current repo (not recursive)
-wtf --here
-
-# scan specific directory
-wtf --dir ~/projects
 
 # look back N days
 wtf --days 3
 
-# filter by author
-wtf --author "Your Name"
+# only current repo
+wtf --here
 
-# copy standup to clipboard
+# copy to clipboard
 wtf --copy
-
-# view past standups
-wtf --history
-
-# show cumulative API spending
-wtf --spending
-
-# output as JSON
-wtf --json
 ```
 
-## Configuration
+## Features
 
-Set your API key in `.env`:
+- **Standup summary** - LLM-generated summary of your commits
+- **WIP tracking** - Shows uncommitted changes + what you're currently working on
+- **Streak counter** - Track your commit streak
+- **Late night detection** - Spots those 2am coding sessions
+- **Branch context** - Shows which branches you touched
+- **History** - View past standups with `wtf --history`
+- **Cost tracking** - Track API spending with `wtf --spending`
 
-```bash
-OPENROUTER_API_KEY=your-key-here
+## Output
+
 ```
+PREVIOUSLY ON YOUR CODE...  Feb 02, 2026
+  * 5 day streak
+────────────────────────────────────────────────────────────
 
-Optional settings:
+   ai-platform (main) ─── 2 commits
+  ├─ feat(sdr): add langsmith tracing
+  └─ feat(sdr): add automatic follow-up
 
-```bash
-WTF_MODEL=openai/gpt-oss-120b
-WTF_PROVIDER=deepinfra/fp4
-OPENROUTER_URL=https://openrouter.ai/api/v1/chat/completions
+   [wip]
+   ai-platform ─── 3 files changed
+  ├─ M src/api/routes.py
+  └─ A src/new_feature.py
+
+────────────────────────────────────────────────────────────
+
+  Added LangSmith tracing and automatic follow-up for stale
+  conversations in the SDR pipeline.
+
+  Currently working on: Adding new API routes for validation.
+
+  Two features down, infinite bugs to go.
 ```
 
 ## Flags
@@ -70,10 +73,10 @@ OPENROUTER_URL=https://openrouter.ai/api/v1/chat/completions
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--dir PATH` | `-d` | Scan a specific directory |
-| `--here` | `-H` | Only scan current repo, not subdirectories |
+| `--here` | `-H` | Only current repo |
 | `--days N` | `-n` | Look back N days (default: 1) |
-| `--author NAME` | `-a` | Filter by author (default: git config user.name) |
-| `--copy` | `-c` | Copy standup summary to clipboard |
+| `--author NAME` | `-a` | Filter by author |
+| `--copy` | `-c` | Copy to clipboard |
 | `--history` | | View past standups |
-| `--spending` | | Show cumulative API costs |
+| `--spending` | | Show API costs |
 | `--json` | | Output as JSON |

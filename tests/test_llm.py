@@ -44,10 +44,8 @@ def test_analyze_commits_success(mocker):
     mock_response.raise_for_status = MagicMock()
 
     mocker.patch("src.llm.requests.post", return_value=mock_response)
-    mocker.patch("src.llm.settings.openrouter_api_key", "test-key")
-    mocker.patch("src.llm.settings.openrouter_url", "https://test.com")
-    mocker.patch("src.llm.settings.wtf_model", "test-model")
-    mocker.patch("src.llm.settings.wtf_provider", "test-provider")
+    mocker.patch("src.llm.get_api_key", return_value="test-key")
+    mocker.patch("src.llm.get_model", return_value="test-model")
 
     response, cost = analyze_commits("test commits")
 

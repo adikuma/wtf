@@ -1,6 +1,6 @@
 [project]
 name = "wtf-dev"
-version = "0.1.0"
+version = "0.1.3"
 description = "What did I work on? A snarky standup generator."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -32,7 +32,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["wtf_dev"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

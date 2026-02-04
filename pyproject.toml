@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-wtf = "src.cli:app"
+wtf = "wtf_dev.cli:app"
 
 [tool.uv]
 package = true

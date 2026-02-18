@@ -1,6 +1,6 @@
 [project]
 name = "wtf-dev"
-version = "0.1.3"
+version = "0.1.4"
 description = "What did I work on? A snarky standup generator."
 readme = "README.md"
 requires-python = ">=3.11"
